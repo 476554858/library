@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <!-- 引入 layui.css -->
+  <link rel="stylesheet" type="text/css" href="https://www.layuicdn.com/layui/css/layui.css" />
+  <!-- 引入 layui.js -->
+  <script src="https://www.layuicdn.com/layui/layui.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="formFilter">
+  <input name="id" type="hidden" />
+  <input name="status" type="hidden" />
+  <div class="layui-form-item">
+    <label class="layui-form-label">书名</label>
+    <div class="layui-input-block">
+      <input type="text" name="bookName" lay-verify="bookName" autocomplete="off" placeholder="请输入书名" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">作者</label>
+    <div class="layui-input-block">
+      <input type="text" name="author" lay-verify="author" autocomplete="off" placeholder="请输入作者" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">出版社</label>
+    <div class="layui-input-block">
+      <input type="text" name="press" lay-verify="press" autocomplete="off" placeholder="请输入出版社" class="layui-input">
+    </div>
+  </div>
+
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">类别</label>
+    <div class="layui-input-block">
+      <select name="category" lay-verify="category" lay-filter="aihao">
+        <option value=""></option>
+        <option value="0" selected="">中文书籍</option>
+        <option value="1">英文书籍</option>
+        <option value="2">俄文书籍</option>
+        <option value="3">德文书籍</option>
+        <option value="4">日文书籍</option>
+        <option value="4">期刊</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">保存</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+</body>
+
+<script>
+
+  $(function (){
+    layui.use(['form'], function (){
+      var form = layui.form;
+      var data = window.parent.me;
+      if(data != undefined){
+        //表单赋值
+        form.val('formFilter', {
+          "bookName": data.bookName // "name": "value"
+          ,"author": data.author
+          ,"press": data.press
+          ,"category": data.category
+          ,"id": data.id
+          ,"status": data.status
+        });
+      }
+    });
+  })
+  layui.use(['form'], function(){
+    var form = layui.form
+            ,layer = layui.layer;
+
+
+    //自定义验证规则
+    form.verify({
+      bookName: function(value){
+        if(value.length == 0){
+          return '请填写书名';
+        }
+      }
+      ,author: function(value){
+        if(value.length == 0){
+          return '请填作者';
+        }
+      },
+      press: function(value){
+        if(value.length == 0){
+          return '请填写出版社';
+        }
+      },
+      category: function(value){
+        if(value.length == 0){
+          return '请选择类别';
+        }
+      }
+    });
+
+    //监听提交
+    form.on('submit(demo1)', function(data){
+      data = data.field
+      $.ajax({
+        url:"/book/add",
+        type: "post",
+        async: false,
+        data: {
+          bookName: data.bookName,
+          author: data.author,
+          press: data.press,
+          category: data.category,
+          id: data.id,
+          status: data.status,
+        },
+        success:function(res){
+          window.parent.location.reload();//刷新父页面
+          parent.layer.close(1);//关闭弹出层
+        }});
+      return false;
+    });
+
+
+  });
+</script>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入 layui.css -->
+    <link rel="stylesheet" type="text/css" href="https://www.layuicdn.com/layui/css/layui.css" />
+    <!-- 引入 layui.js -->
+    <script src="https://www.layuicdn.com/layui/layui.js"></script>
+</head>
+<body>
+<div style="padding: 15px;">
+    <div class="demoTable">
+        书名：
+        <div class="layui-inline">
+            <input class="layui-input" name="bookName" id="bookName" autocomplete="off">
+        </div>
+        作者：
+        <div class="layui-inline">
+            <input class="layui-input" name="author" id="author" autocomplete="off">
+        </div>
+        出版社：
+        <div class="layui-inline">
+            <input class="layui-input" name="press" id="press" autocomplete="off">
+        </div>
+        <button class="layui-btn" data-type="reload">搜索</button>
+    </div>
+    <table class="layui-hide" id="bookTable" lay-filter="bookFilter"></table>
+</div>
+</body>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="revert">归还</a>
+    <a class="layui-btn layui-btn-xs" lay-event="lendAgain">续借</a>
+    <a class="{{d.status != 2 ? 'layui-btn layui-btn-danger layui-btn-xs' : 'layui-btn layui-btn-warm layui-btn-xs'}} " lay-event="loss"  >{{d.status != 2 ? '遗失' : '已遗失'}}</a>
+</script>
+
+
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+
+        table.render({
+            elem: '#bookTable'
+            ,url:'/lend/record/list'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,cols: [[
+                {field:'id', width:'5%', title: 'ID', sort: true}
+                ,{field:'bookName', width:'15%', title: '书名'}
+                ,{field:'category', width:'15%', title: '分类',templet: function (data){
+                        if(data.category == 0) return "中文书籍";
+                        if(data.category == 1) return "英文书籍";
+                        if(data.category == 2) return "俄文书籍";
+                        if(data.category == 3) return "日文书籍";
+                        if(data.category == 4) return "期刊";
+                    }, sort: true}
+                ,{field:'author', width:'10%', title: '作者'}
+                ,{field:'press', title: '出版社', width: '10%', minWidth: 100} //minWidth：局部定义当前单元格的最小宽度，layui 2.2.1 新增
+                ,{field:'lendDate', title: '借书日期', width: '15%', minWidth: 100, templet:"<div>{{layui.util.toDateString(d.lendDate,'yyyy-MM-dd')}}</div>"}
+                ,{field:'revertDate', title: '应还日期', width: '15%', minWidth: 100, templet:"<div>{{layui.util.toDateString(d.revertDate,'yyyy-MM-dd')}}</div>"}
+                ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:'15%'}
+            ]]
+            ,page: true
+            ,id: 'tableReload'
+        });
+
+        //监听工具条
+        table.on('tool(bookFilter)', function(obj){
+            var data = obj.data;
+           if(obj.event === 'lendAgain'){
+                $.ajax({
+                    url:"/lend/again",
+                    type: "post",
+                    async: false,
+                    data: {
+                        bookId: data.bookId,
+                    },
+                    success:function(res){
+                        layer.msg(res.msg);
+                        table.reload('tableReload', {
+                            page: {
+                                curr: 1 //重新从第 1 页开始
+                            }});
+                    }});
+            } else if(obj.event === 'loss'){
+               $.ajax({
+                   url:"/book/loss",
+                   type: "post",
+                   async: false,
+                   data: {
+                       bookId: data.bookId,
+                   },
+                   success:function(res){
+                       layer.msg(res.msg);
+                       table.reload('tableReload', {
+                           page: {
+                               curr: 1 //重新从第 1 页开始
+                           }});
+
+                   }});
+            }else if(obj.event === 'revert'){
+               if(data.status == 2){
+                   layer.msg("已遗失不能归还");
+                   return false;
+               }
+               $.ajax({
+                   url:"/book/revert",
+                   type: "post",
+                   async: false,
+                   data: {
+                       bookId: data.bookId,
+                   },
+                   success:function(res){
+                       layer.msg(res.msg);
+                       table.reload('tableReload', {
+                           page: {
+                               curr: 1 //重新从第 1 页开始
+                           }});
+                   }});
+           }
+        });
+
+        var $ = layui.$;
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        //搜索
+        var $ = layui.$, active = {
+            reload: function(){
+                var bookName = $('#bookName').val();
+                console.log(bookName)
+                var author = $('#author').val();
+                console.log(author)
+                var press = $('#press').val();
+                //执行重载
+                table.reload('tableReload', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    ,where: {
+                        bookName: bookName,
+                        author: author,
+                        press: press
+                    }
+                });
+            }
+        };
+
+
+    });
+
+
+
+</script>
+</html>

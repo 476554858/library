@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入 layui.css -->
+    <link rel="stylesheet" type="text/css" href="https://www.layuicdn.com/layui/css/layui.css" />
+    <!-- 引入 layui.js -->
+    <script src="https://www.layuicdn.com/layui/layui.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+</head>
+<body>
+
+
+<div class="layui-row">
+
+    <div class="layui-col-md4 layui-col-md-offset4">
+        <div class="grid-demo">
+            <fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+                <legend>图书管理系统</legend>
+            </fieldset>
+            <form class="layui-form layui-form-pane" >
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="userName" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-inline">
+                        <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="login">登陆</button>
+                    <button class="layui-btn" lay-filter="regist" id="regist">注册</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+    layui.use(['form'], function(){
+        var form = layui.form
+            ,layer = layui.layer;
+
+        //监听提交
+        form.on('submit(login)', function(data){
+            data = data.field;
+            $.ajax({
+                url:"/user/login",
+                type: "post",
+                async: false,
+                data: {
+                    userName: data.userName,
+                    password: data.password
+                },
+                success:function(res){
+                    layer.msg(res.msg);
+                    if(res.code == 0){
+                        window.location.href = "/";
+                    }
+                }});
+            return false;
+        });
+    });
+    $("#regist").click(function (){
+        window.location.href = "regist";
+        return false;
+    })
+</script>
+
+</body>
+</html>
